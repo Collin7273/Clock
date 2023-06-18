@@ -4,6 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Date;
 
 public class Clock extends JFrame{
     Calendar calendar;
@@ -14,17 +17,19 @@ public class Clock extends JFrame{
     JLabel timeLabel;
     JLabel dayLabel;
     JLabel dateLabel;
-    String time;
-    String day;
-    String date;
 
+    private JLabel alarmStatusLabel;
+    private JTextField alarmField;
+    private JButton setAlarmButton;
+
+    private Date alarmTime;
     // Creating a new clock object.
     Clock(){
-        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        this.setTitle("Digital Clock");
-        this.setLayout(new FlowLayout());
-        this.setSize(350, 220);
-        this.setResizable(false);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Digital Clock");
+        setLayout(new FlowLayout());
+        setSize(350, 300);
+        setResizable(false);
 
         timeFormat = new SimpleDateFormat("hh:mm:ss a");
         dayFormat = new SimpleDateFormat("EEEE");
@@ -34,30 +39,52 @@ public class Clock extends JFrame{
         timeLabel.setBackground(Color.BLUE);
         timeLabel.setForeground(Color.RED);
         timeLabel.setOpaque(true);
+        
         dayLabel = new JLabel();
         dayLabel.setFont(new Font("Ink Free", Font.BOLD, 34));
 
         dateLabel = new JLabel();
         dateLabel.setFont(new Font("Ink Free", Font.BOLD, 30));
 
-        this.add(timeLabel);
-        this.add(dayLabel);
-        this.add(dateLabel);
-        this.setVisible(true);
+        alarmStatusLabel = new JLabel("No alarm set.");
+         alarmStatusLabel.setFont(new Font("Ink Free", Font.BOLD, 18));
+
+        alarmField = new JTextField(10);
+
+        setAlarmButton = new JButton("Set Alarm");
+        setAlarmButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setAlarm();
+            }
+        });
+
+        add(timeLabel);
+        add(dayLabel);
+        add(dateLabel);
+        add(alarnStatusLabel);
+        add(new JLabel("Set Alarms: "));
+        add(alarmField);
+        add(setAlarmButton);
+        setVisible(true);
 
         setTimer();
     }
 
     public void setTimer(){
         while(true){
-            time = timeFormat();
+            Calander calander = Calander.getInstance();
+            
+            String time = timeFormat();
             timeLabel.setText(time);
 
-            day = dayFormat.format(Calendar.getInstance().getTime());
+            String day = dayFormat.format(Calendar.getInstance().getTime());
             dayLabel.setText(day);
 
-            date = dateFormat.format(Calendar.getInstance().getTime());
+            String date = dateFormat.format(Calendar.getInstance().getTime());
             dateLabel.setText(date);
+
+            checkAlarmTrigger();
 
             try{
                 Thread.sleep(1000);
@@ -66,10 +93,36 @@ public class Clock extends JFrame{
             }
         }
     }
-    private String timeFormat() {
-        return null;
+   private void setAlarm() {
+        String alarmText = alarmField.getText();
+        SimpleDateFormat alarmFormat = new SimpleDateFormat("hh:mm a");
+
+        try {
+            alarmTime = alarmFormat.parse(alarmText);
+            alarmStatusLabel.setText("Alarm set for " + alarmFormat.format(alarmTime));
+        } catch (Exception e) {
+            alarmStatusLabel.setText("Invalid alarm format");
+            e.printStackTrace();
+        }
     }
 
+private void checkAlarmTrigger() {
+        if (alarmTime != null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(alarmTime);
+
+            Calendar currentTime = Calendar.getInstance();
+
+            if (calendar.get(Calendar.HOUR_OF_DAY) == currentTime.get(Calendar.HOUR_OF_DAY)
+                    && calendar.get(Calendar.MINUTE) == currentTime.get(Calendar.MINUTE)
+                    && calendar.get(Calendar.SECOND) == currentTime.get(Calendar.SECOND)) {
+                JOptionPane.showMessageDialog(null, "Alarm triggered!");
+                alarmTime = null;
+                alarmStatusLabel.setText("No alarm set");
+            }
+        }
+    }
+    
     public static void main(String[] args) {
         new Clock();
         
